@@ -8,14 +8,17 @@ import { sortPlacesByDistance } from "./loc.js";
 
 const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
 const storedPlaces = storedIds.map(id => AVAILABLE_PLACES.find((place) => place.id == id))
+console.log("Hi")
 
 function App() {
-  const modal = useRef();
+  // const modal = useRef();
+  const [modalIsOpen, setIsModalOpen] = useState(false)
   const selectedPlace = useRef();
   const [availabelPlaces, setAvailablePlaces] = useState([])
   const [pickedPlaces, setPickedPlaces] = useState(storedPlaces);
 
   useEffect(() => {
+    console.log("Heloo")
     navigator.geolocation.getCurrentPosition((position) => {
       const sortedPlaces = sortPlacesByDistance(
         AVAILABLE_PLACES,
@@ -26,13 +29,17 @@ function App() {
     });
   }, [])
 
+  console.log("bye")
   function handleStartRemovePlace(id) {
-    modal.current.open();
+    // modal.current.open();
+    setIsModalOpen(true)
     selectedPlace.current = id;
   }
 
   function handleStopRemovePlace() {
-    modal.current.close();
+    // modal.current.close();
+    setIsModalOpen(false)
+
   }
 
   function handleSelectPlace(id) {
@@ -53,7 +60,9 @@ function App() {
     setPickedPlaces((prevPickedPlaces) =>
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
     );
-    modal.current.close();
+    // modal.current.close();
+    setIsModalOpen(false)
+
 
     const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
     localStorage.setItem('selectedPlaces', JSON.stringify(storedIds.filter((id) => id !== selectedPlace.current)))
@@ -62,7 +71,10 @@ function App() {
 
   return (
     <>
-      <Modal ref={modal}>
+      <Modal
+        // ref={modal} 
+        open={modalIsOpen}
+        onClose={handleStartRemovePlace}>
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
           onConfirm={handleRemovePlace}
@@ -84,6 +96,7 @@ function App() {
           places={pickedPlaces}
           onSelectPlace={handleStartRemovePlace}
         />
+        {/* {console.log("Inside the component")} */}
         <Places
           title="Available Places"
           places={availabelPlaces}
