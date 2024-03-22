@@ -1,45 +1,42 @@
-import { useEffect, useRef, useState } from "react";
-import Places from "./components/Places.jsx";
-import { AVAILABLE_PLACES } from "./data.js";
-import Modal from "./components/Modal.jsx";
-import DeleteConfirmation from "./components/DeleteConfirmation.jsx";
-import logoImg from "./assets/logo.png";
-import { sortPlacesByDistance } from "./loc.js";
+import { useRef, useState, useEffect, useCallback } from 'react';
+
+import Places from './components/Places.jsx';
+import { AVAILABLE_PLACES } from './data.js';
+import Modal from './components/Modal.jsx';
+import DeleteConfirmation from './components/DeleteConfirmation.jsx';
+import logoImg from './assets/logo.png';
+import { sortPlacesByDistance } from './loc.js';
 
 const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
-const storedPlaces = storedIds.map(id => AVAILABLE_PLACES.find((place) => place.id == id))
-console.log("Hi")
+const storedPlaces = storedIds.map((id) =>
+  AVAILABLE_PLACES.find((place) => place.id === id)
+);
 
 function App() {
-  // const modal = useRef();
-  const [modalIsOpen, setIsModalOpen] = useState(false)
   const selectedPlace = useRef();
-  const [availabelPlaces, setAvailablePlaces] = useState([])
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [availablePlaces, setAvailablePlaces] = useState([]);
   const [pickedPlaces, setPickedPlaces] = useState(storedPlaces);
 
   useEffect(() => {
-    console.log("Heloo")
     navigator.geolocation.getCurrentPosition((position) => {
       const sortedPlaces = sortPlacesByDistance(
         AVAILABLE_PLACES,
         position.coords.latitude,
         position.coords.longitude
       );
-      setAvailablePlaces(sortedPlaces)
-    });
-  }, [])
 
-  console.log("bye")
+      setAvailablePlaces(sortedPlaces);
+    });
+  }, []);
+
   function handleStartRemovePlace(id) {
-    // modal.current.open();
-    setIsModalOpen(true)
+    setModalIsOpen(true);
     selectedPlace.current = id;
   }
 
   function handleStopRemovePlace() {
-    // modal.current.close();
-    setIsModalOpen(false)
-
+    setModalIsOpen(false);
   }
 
   function handleSelectPlace(id) {
@@ -50,31 +47,32 @@ function App() {
       const place = AVAILABLE_PLACES.find((place) => place.id === id);
       return [place, ...prevPickedPlaces];
     });
+
     const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
     if (storedIds.indexOf(id) === -1) {
-      localStorage.setItem('selectedPlaces', JSON.stringify([id, ...storedIds]))
+      localStorage.setItem(
+        'selectedPlaces',
+        JSON.stringify([id, ...storedIds])
+      );
     }
   }
 
-  function handleRemovePlace() {
+  const handleRemovePlace = useCallback(function handleRemovePlace() {
     setPickedPlaces((prevPickedPlaces) =>
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
     );
-    // modal.current.close();
-    setIsModalOpen(false)
-
+    setModalIsOpen(false);
 
     const storedIds = JSON.parse(localStorage.getItem('selectedPlaces')) || [];
-    localStorage.setItem('selectedPlaces', JSON.stringify(storedIds.filter((id) => id !== selectedPlace.current)))
-
-  }
+    localStorage.setItem(
+      'selectedPlaces',
+      JSON.stringify(storedIds.filter((id) => id !== selectedPlace.current))
+    );
+  }, []);
 
   return (
     <>
-      <Modal
-        // ref={modal} 
-        open={modalIsOpen}
-        onClose={handleStartRemovePlace}>
+      <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
           onConfirm={handleRemovePlace}
@@ -92,14 +90,13 @@ function App() {
       <main>
         <Places
           title="I'd like to visit ..."
-          fallbackText={"Select the places you would like to visit below."}
+          fallbackText={'Select the places you would like to visit below.'}
           places={pickedPlaces}
           onSelectPlace={handleStartRemovePlace}
         />
-        {/* {console.log("Inside the component")} */}
         <Places
           title="Available Places"
-          places={availabelPlaces}
+          places={availablePlaces}
           fallbackText="Sorting places by distance..."
           onSelectPlace={handleSelectPlace}
         />
